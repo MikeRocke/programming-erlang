@@ -6,3 +6,5 @@ even_invalid_test() -> false = math_functions:even(1).
 
 odd_valid_test() -> true = math_functions:odd(3).
 odd_invalid_test() -> false = math_functions:odd(4).
+
+filter_even_test() -> [2,4,6,8,10] = math_functions:filter(fun math_functions:even/1, lists:seq(1, 10)).
