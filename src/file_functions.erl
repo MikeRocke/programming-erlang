@@ -4,7 +4,7 @@
 
 read_lines(MyList, OpenedFile) ->
     case file:read_line(OpenedFile) of
-        {ok, Line} -> read_lines([string:trim(Line) | MyList], OpenedFile);
+        {ok, Line} -> read_lines([Line | MyList], OpenedFile);
         eof -> MyList
     end.
 
@@ -12,4 +12,4 @@ read_lines(Filename) ->
     {ok, MyFile} = file:open(Filename, read),
     Lines = read_lines([], MyFile),
     file:close(MyFile),
-    Lines.
+    lists:reverse(Lines).

@@ -1,5 +1,5 @@
 -module(math_functions).
--export([even/1, odd/1, filter/2, split/1]).
+-export([even/1, odd/1, filter/2, split/1, parse_integer/1]).
 
 even(X) when X rem 2 =:= 0 -> true;
 even(_) -> false.
@@ -19,3 +19,7 @@ even_and_odd_acc([H|T], Even, Odd) ->
         true -> even_and_odd_acc(T, [H | Even], Odd);
         false -> even_and_odd_acc(T, Even, [H | Odd])
     end.
+
+parse_integer(String) ->
+    {Int, _} = string:to_integer(String),
+    Int.
