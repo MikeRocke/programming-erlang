@@ -14,6 +14,7 @@ start() ->
          correct_order(Left, Right)
          end, lists:seq(1, length(PacketPairs))),
     lists:sum(SolitionOne),
+    io:format("~p ~n", [SolitionOne]),
 
     FirstDivider = [[2]],
     SecondDivider = [[6]],
