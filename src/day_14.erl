@@ -25,7 +25,11 @@ start() ->
     StartingPoint = {500,0},
     CollisionMap = build_collision_map(Parsed),
     AbyssY = lists:max([Y || {_, Y} <- maps:keys(CollisionMap)]),
-    solve_part_1({CollisionMap, StartingPoint}, StartingPoint, AbyssY, 1).
+    solve_part_1({CollisionMap, StartingPoint}, StartingPoint, AbyssY, 1),
+    Floor = AbyssY + 2,
+    WithFloor = maps:merge(CollisionMap, collision_map_from_two_points({0, Floor}, {1000, Floor})),
+    solve_part_2({WithFloor, StartingPoint}, StartingPoint, 1).
+
 
 
 build_collision_map(Parsed) ->
@@ -50,6 +54,15 @@ collision_map_from_two_points({X1, Y1}, {X2, Y2}) ->
         FoldFunction = fun(Key, CollisionMap) -> maps:put(Key, "#", CollisionMap) end,
         lists:foldl(FoldFunction, #{}, [{X,Y} || X <- Xs, Y <- Ys]).
 
+
+solve_part_2({State, StartingPoint}, {SandX, SandY}, UnitsOfSand) ->
+        case physics_step(State, {SandX, SandY}) of
+                {stopped, _} when {SandX, SandY} =:= StartingPoint -> UnitsOfSand;
+                {in_motion, NewState, NewPosition} -> solve_part_2({NewState, StartingPoint}, NewPosition, UnitsOfSand);
+                {stopped, NewState} -> solve_part_2({NewState, StartingPoint}, StartingPoint, UnitsOfSand + 1)
+        end.
+
+
 solve_part_1({State, _}, {_, Y}, Y, UnitsOfSand) -> 
         visualize(State),
         UnitsOfSand - 1;
@@ -63,7 +76,6 @@ physics_step(State, {SandX, SandY}) ->
         Down = {SandX, SandY + 1},
         DownLeft = {SandX - 1, SandY + 1},
         DownRight = {SandX + 1, SandY + 1},
-        % TODO: add collision detection,
         Possibles = [Down, DownLeft, DownRight],
         NextMoves = lists:filter(fun(P) -> not maps:is_key(P, State) end, Possibles),
         case NextMoves of
