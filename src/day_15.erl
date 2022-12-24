@@ -8,24 +8,38 @@ start() ->
     solve_part_one(Data).
 
 solve_part_one(Data) ->
-    % YToCheck = 2000000,
-    YToCheck = 10,
-    
     Beacons = sets:from_list([{Xb, Yb} || {_, {beacon, Xb, Yb}} <- Data]),
-    FilterRow = fun({_, Y}) -> Y =:= YToCheck end,
-    FilterOutBeacon = fun(P) -> not sets:is_element(P, Beacons) end,
-    Filter = fun(P) -> FilterRow(P) and FilterOutBeacon(P) end,
+    BeaconsOnRow = sets:filter(fun ({_, Y}) -> Y =:= 10 end, Beacons),
+    FilteredDataIntervals = lists:flatmap(fun to_coverage_area/1, Data),
+    SortedIntervals = lists:sort(FilteredDataIntervals),
+    lists:foldl(fun({S,E}, Acc) -> 
+        case Acc of
+            [] -> [{S, E}];
+            [{OS, OE}] -> try_merge({S, E}, {OS, OE});
+            [{OS, OE} | T] -> try_merge({S, E}, {OS, OE}) ++ T
+        end
+        end, [], SortedIntervals).
 
-    Cells = lists:filter(Filter, lists:flatmap(fun to_coverage_area/1, Data)),
-    UniqueCells = sets:from_list(Cells),
-    sets:size(UniqueCells).
+try_merge({X1, Y1}, {X2, Y2}) ->
+    case does_overlap({X1, Y1}, {X2, Y2}) of
+        true -> [{min(X1, X2), max(Y1, Y2)}];
+        false -> [{X1, Y1}, {X2, Y2}]
+    end.
 
+does_overlap({X1, Y1}, {X2, Y2}) ->
+    (X1 =< Y2) and (X2 =< Y1).
 
 to_coverage_area({{sensor, Xs, Ys}, {beacon, Xb, Yb}}) ->
     Distance = distances:manhattan({Xs, Ys}, {Xb, Yb}),
-    XRange = lists:seq(Xs - Distance, Xs + Distance),
-    YRange = lists:seq(Ys - Distance, Ys + Distance),
-    [{X, Y} || X <- XRange, Y <- YRange, distances:manhattan({Xs, Ys}, {X, Y}) =< Distance].
+    YToCheck = 2000000,
+    % YToCheck = 10,
+    DistanceToY = abs(YToCheck - Ys),
+    
+    XWidth = max(Distance - DistanceToY, 0),
+    case XWidth of
+        0 -> [];
+        _ -> [{Xs - XWidth, Xs + XWidth}]
+    end.
 
 to_pairs([Xs,Ys,Xb,Yb]) ->
     {{sensor, Xs, Ys}, {beacon, Xb, Yb}}.
