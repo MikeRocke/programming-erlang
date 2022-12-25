@@ -1,4 +1,4 @@
--module(day_13).
+-module(aoc_2022_day_13).
 -export([start/0]).
 -compile(export_all).
 

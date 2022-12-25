@@ -1,4 +1,4 @@
--module(day_11).
+-module(aoc_2022_day_11).
 -export([start/0, monkey_loop/2]).
 
 monkey_loop({Me, Items, Operation, Test, TrueMonkey, FalseMonkey}, InspectionCount) ->
