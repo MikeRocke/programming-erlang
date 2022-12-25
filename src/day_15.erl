@@ -5,12 +5,31 @@
 start() ->
     Lines = file_functions:read_lines("input.txt"),
     Data = [to_pairs(parse_line(L)) || L <- Lines],
-    solve_part_one(Data).
+    solve_part_one(Data),
+    solve_part_two(Data).
+
+solve_part_two(Data) ->
+    solve_part_two(Data, 0).
+solve_part_two(Data, YToCheck) ->
+    FilteredDataIntervals = lists:flatmap(fun(D) -> to_coverage_area(D, YToCheck) end, Data),
+    SortedIntervals = lists:sort(FilteredDataIntervals),
+    Intervals = lists:foldl(fun({S,E}, Acc) -> 
+        case Acc of
+            [] -> [{S, E}];
+            [{OS, OE}] -> try_merge({S, E}, {OS, OE});
+            [{OS, OE} | T] -> try_merge({S, E}, {OS, OE}) ++ T
+        end
+        end, [], SortedIntervals),
+    case Intervals of 
+        [_] -> solve_part_two(Data, YToCheck + 1);
+        [{B, _}, {_, C}] -> {{x, C + 1, B, C}, {y, YToCheck}}
+    end.
 
 solve_part_one(Data) ->
-    Beacons = sets:from_list([{Xb, Yb} || {_, {beacon, Xb, Yb}} <- Data]),
-    BeaconsOnRow = sets:filter(fun ({_, Y}) -> Y =:= 10 end, Beacons),
-    FilteredDataIntervals = lists:flatmap(fun to_coverage_area/1, Data),
+    YToCheck = 3289729,
+    % YToCheck = 2000000,
+    % YToCheck = 10,
+    FilteredDataIntervals = lists:flatmap(fun(D) -> to_coverage_area(D, YToCheck) end, Data),
     SortedIntervals = lists:sort(FilteredDataIntervals),
     lists:foldl(fun({S,E}, Acc) -> 
         case Acc of
@@ -29,10 +48,8 @@ try_merge({X1, Y1}, {X2, Y2}) ->
 does_overlap({X1, Y1}, {X2, Y2}) ->
     (X1 =< Y2) and (X2 =< Y1).
 
-to_coverage_area({{sensor, Xs, Ys}, {beacon, Xb, Yb}}) ->
+to_coverage_area({{sensor, Xs, Ys}, {beacon, Xb, Yb}}, YToCheck) ->
     Distance = distances:manhattan({Xs, Ys}, {Xb, Yb}),
-    YToCheck = 2000000,
-    % YToCheck = 10,
     DistanceToY = abs(YToCheck - Ys),
     
     XWidth = max(Distance - DistanceToY, 0),
